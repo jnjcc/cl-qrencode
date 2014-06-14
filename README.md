@@ -24,8 +24,8 @@ module (dark or light) is indicated by ```dark-module-p```.
 ```
 ```encode-symbol``` encodes ```TEXT``` into a ```QR-SYMBOL``` object.
 ```VERSION``` may be adapted to accommodate the encoding data.
-```LEVEL``` is the error correction level, which should be one of :level-l,
-:level-m, :level-q, or :level-h.
+```LEVEL``` is the error correction level, which should be one of ```:level-l```,
+```:level-m```, ```:level-q```, or ```:level-h```.
 For most of the time, ```MODE``` should be left ```nil```.
 
 ```lisp
