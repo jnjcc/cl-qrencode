@@ -73,9 +73,14 @@
       (let ((sub (- (gf-log gf a) (gf-log gf b))))
         (gf-exp gf sub))))
 
+;;; open-paren at beg of line confuses `slime-compile-defun` which uses
+;;; elisp function `beginning-of-defun`, which in turn involves
+;;; backward-searching open-paren at beg of line
+;;;   there seems to be no easy way to fix this problem
+;; with an extra leading '\', docstring is kind of ulgy now, though
 (defmacro with-gf-accessors (accessors gf &body body)
   "shortcuts for gf-exp & gf-log, usage:
-(with-gf-accessors ((gfexp gf-exp)) *gf-instance* ...)"
+\(with-gf-accessors ((gfexp gf-exp)) *gf-instance* ...)"
   `(labels ,(mapcar (lambda (acc-entry)
                       (let ((acc-name (car acc-entry))
                             (method-name (cadr acc-entry)))
@@ -86,7 +91,7 @@
 
 (defmacro with-gf-arithmetics (ariths gf &body body)
   "shortcuts for gf-add, gf-subtract, gf-multiply & gf-divide, usage:
-(with-gf-arithmetics ((gf+ gf-add)) *gf-instance* ...)"
+\(with-gf-arithmetics ((gf+ gf-add)) *gf-instance* ...)"
   `(labels ,(mapcar (lambda (arith-entry)
                       (let ((arith-name (car arith-entry))
                             (method-name (cadr arith-entry)))
@@ -97,7 +102,7 @@
 
 (defmacro with-gf-shortcuts (accessors ariths gf &body body)
   "combined with-gf-accessors & with-gf-arithmetics, usage:
-(with-gf-shortcuts ((gflog gf-log)) ((gf* gf-multiply)) *gf-instance* ...)"
+\(with-gf-shortcuts ((gflog gf-log)) ((gf* gf-multiply)) *gf-instance* ...)"
   `(labels ,(append
              (mapcar (lambda (acc-entry)
                        (let ((acc-name (car acc-entry))
