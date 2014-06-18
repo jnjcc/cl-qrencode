@@ -27,7 +27,10 @@ pixels on all four sides"
                     (set-color qrarray x y 255)))
               ;; quiet zone
               (set-color qrarray x y 255))))
-      (zpng:write-png qrpng fpng :if-exists :supersede))))
+              ;; is fpng a pathname/string or a stream?
+              (typecase fpng
+                 ((or pathname string) (zpng:write-png qrpng fpng :if-exists :supersede))
+                 (stream (zpng:write-png-stream qrpng fpng))))))
 
 (defun encode-png (text &key (fpath "qrcode.png") (version 1) (level :level-m)
                    (mode nil) (pixsize 9) (margin 8))
