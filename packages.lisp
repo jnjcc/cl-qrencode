@@ -15,7 +15,9 @@
            #:qr-symbol
            #:dark-module-p
            #:encode-png
+           #:encode-png-stream
            #:encode-png-bytes
+           #:encode-png-bytes-stream
            #:read-file-content
            #:sdebug
            #:undebug))
