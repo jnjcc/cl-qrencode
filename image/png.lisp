@@ -50,3 +50,4 @@ pixels for each module, and MARGIN pixels on all four sides"
   (let ((symbol (encode-symbol-bytes bytes :version version :level level
                                      :mode mode)))
     (zpng:write-png-stream (symbol->png symbol pixsize margin) stream)))
+
