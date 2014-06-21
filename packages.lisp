@@ -22,6 +22,8 @@
            ;; strictly speaking, this should not be part of this package
            #:encode-png
            #:encode-png-bytes ; this should have been deprecated
+           #:encode-png-stream
+           ; #:encode-png-bytes-stream
            #:read-file-content
            #:sdebug
            #:undebug))

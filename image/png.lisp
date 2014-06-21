@@ -9,9 +9,9 @@
   (setf (aref pngarray x y 1) color)
   (setf (aref pngarray x y 2) color))
 
-(defun symbol->png (symbol fpng pixsize margin)
-  "write qr symbol into FPNG, with PIXSIZE pixels for each module, and MARGIN
-pixels on all four sides"
+(defun symbol->png (symbol pixsize margin)
+  "return the qr symbol written into a zpng:png object with PIXSIZE
+pixels for each module, and MARGIN pixels on all four sides"
   (with-slots (matrix modules) symbol
     (let* ((size (+ (* modules pixsize) (* margin 2)))
            (qrpng (make-instance 'zpng:png :width size :height size))
@@ -27,15 +27,27 @@ pixels on all four sides"
                     (set-color qrarray x y 255)))
               ;; quiet zone
               (set-color qrarray x y 255))))
-      (zpng:write-png qrpng fpng :if-exists :supersede))))
+      qrpng)))
 
 (defun encode-png (text &key (fpath "qrcode.png") (version 1) (level :level-m)
+                          (mode nil) (pixsize 9) (margin 8))
+  (let ((symbol (encode-symbol text :version version :level level :mode mode)))
+    (zpng:write-png (symbol->png symbol pixsize margin) fpath)))
+
+(defun encode-png-stream (text stream &key (version 1) (level :level-m)
                    (mode nil) (pixsize 9) (margin 8))
   (let ((symbol (encode-symbol text :version version :level level :mode mode)))
-    (symbol->png symbol fpath pixsize margin)))
+    (zpng:write-png-stream (symbol->png symbol pixsize margin) stream)))
 
 (defun encode-png-bytes (bytes &key (fpath "kanji.png") (version 1)
                          (level :level-m) (mode nil) (pixsize 9) (margin 8))
   (let ((symbol (encode-symbol-bytes bytes :version version :level level
                                      :mode mode)))
-    (symbol->png symbol fpath pixsize margin)))
+    (zpng:write-png (symbol->png symbol pixsize margin) fpath)))
+
+(defun encode-png-bytes-stream (bytes stream &key (version 1)
+                         (level :level-m) (mode nil) (pixsize 9) (margin 8))
+  (let ((symbol (encode-symbol-bytes bytes :version version :level level
+                                     :mode mode)))
+    (zpng:write-png-stream (symbol->png symbol pixsize margin) stream)))
+
