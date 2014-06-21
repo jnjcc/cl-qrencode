@@ -30,12 +30,12 @@ pixels for each module, and MARGIN pixels on all four sides"
       qrpng)))
 
 (defun encode-png (text &key (fpath "qrcode.png") (version 1) (level :level-m)
-                          (mode nil) (pixsize 9) (margin 8))
+                   (mode nil) (pixsize 9) (margin 8))
   (let ((symbol (encode-symbol text :version version :level level :mode mode)))
     (zpng:write-png (symbol->png symbol pixsize margin) fpath)))
 
 (defun encode-png-stream (text stream &key (version 1) (level :level-m)
-                   (mode nil) (pixsize 9) (margin 8))
+                          (mode nil) (pixsize 9) (margin 8))
   (let ((symbol (encode-symbol text :version version :level level :mode mode)))
     (zpng:write-png-stream (symbol->png symbol pixsize margin) stream)))
 
@@ -45,8 +45,8 @@ pixels for each module, and MARGIN pixels on all four sides"
                                      :mode mode)))
     (zpng:write-png (symbol->png symbol pixsize margin) fpath)))
 
-(defun encode-png-bytes-stream (bytes stream &key (version 1)
-                         (level :level-m) (mode nil) (pixsize 9) (margin 8))
+(defun encode-png-bytes-stream (bytes stream &key (version 1) (level :level-m)
+                                (mode nil) (pixsize 9) (margin 8))
   (let ((symbol (encode-symbol-bytes bytes :version version :level level
                                      :mode mode)))
     (zpng:write-png-stream (symbol->png symbol pixsize margin) stream)))
