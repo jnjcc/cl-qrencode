@@ -88,7 +88,7 @@
 
 ;;; :kanji mode
 (defun kanji->decimal (word range)
-  (let ((subtractor (case range
+  (let ((subtractor (ecase range
                       (0 #x8140)
                       (1 #xc140))))
     (decf word subtractor)

@@ -110,7 +110,7 @@ achieve the most efficient conversion of data"))
        (case (xor-subset-of (nthcdr 2 bytes))
          ((:numeric :alnum) :kanji)
          (:byte
-          (let ((nunits (case (version-range version)
+          (let ((nunits (ecase (version-range version)
                           ((0 1) 5)
                           (2 6))))
             (if (every-unit-matches (nthcdr 3 bytes) 2 nunits :kanji)
@@ -118,7 +118,7 @@ achieve the most efficient conversion of data"))
                 :kanji)))
          (otherwise :kanji)))
       (:alnum
-       (let ((nunits (case (version-range version)
+       (let ((nunits (ecase (version-range version)
                        (0 6) (1 7) (2 8))))
          ;; number of units (characters) match :alnum, followed by a :byte unit
          (multiple-value-bind (n last-mode) (nunits-matches (cdr bytes) :alnum)
@@ -126,9 +126,9 @@ achieve the most efficient conversion of data"))
                :byte
                :alnum))))
       (:numeric
-       (let ((nbunits (case (version-range version)
+       (let ((nbunits (ecase (version-range version)
                         ((0 1) 4) (2 5)))
-             (naunits (case (version-range version)
+             (naunits (ecase (version-range version)
                         (0 7) (1 8) (2 9))))
          (multiple-value-bind (n last-mode) (nunits-matches (cdr bytes) :numeric)
            (if (and (< n nbunits) (eq last-mode :byte))
@@ -152,7 +152,7 @@ achieve the most efficient conversion of data"))
 (defun nunits-matches (bytes mode)
   "(number of units that matches MODE, and mode for the first unmatched unit)"
   (declare (type list bytes) (type qr-mode mode))
-  (let ((usize (case mode
+  (let ((usize (ecase mode
                  ((:byte :alnum :numeric) 1)
                  ;; as for :kanji, 2 bytes forms a single unit
                  (:kanji 2)))
@@ -170,13 +170,13 @@ achieve the most efficient conversion of data"))
     (return-from analyse-byte-mode))
   (with-slots (bytes cur-byte version segments) input
     (let* ((range (version-range version))
-           (nkunits (case range ; number of :kanji units before more :byte
+           (nkunits (ecase range ; number of :kanji units before more :byte
                       (0 9) (1 12) (2 13)))
-           (nanuits (case range ; number of :alnum units before more :byte
+           (nanuits (ecase range ; number of :alnum units before more :byte
                       (0 11) (1 15) (2 16)))
-           (nmunits1 (case range ; number of :numeric units before more :byte
+           (nmunits1 (ecase range ; number of :numeric units before more :byte
                        (0 6) (1 8) (2 9)))
-           (nmunits2 (case range ; number of :numeric units before more :alnum
+           (nmunits2 (ecase range ; number of :numeric units before more :alnum
                        (0 6) (1 7) (2 8)))
            (switch-mode nil))
       (multiple-value-bind (nmatches last-mode)
@@ -210,7 +210,7 @@ achieve the most efficient conversion of data"))
   (unless seg
     (return-from analyse-alnum-mode))
   (with-slots (bytes cur-byte version segments) input
-    (let ((nmunits (case (version-range version)
+    (let ((nmunits (ecase (version-range version)
                      (0 13) (1 15) (2 17)))
           (switch-mode nil))
       (when (>= (nunits-matches (nthcdr cur-byte bytes) :kanji) 1)
