@@ -4,7 +4,8 @@
 (asdf:defsystem #:cl-qrencode
   :description "QR code 2005 encoder in Common Lisp"
   :version "0.1.0"
-  :author "jnjcc at Yste.org"
+  :author "jnjcc at live.com"
+  :licence "GPL"
   :serial t
   :depends-on (#:zpng)
   :components ((:file "packages")
@@ -27,6 +28,10 @@
                         :components ((:file "png")))))
 
 (asdf:defsystem #:cl-qrencode-test
+  :description "QR code encoder test suites"
+  :version "0.1.0"
+  :author "jnjcc at live.com"
+  :licence "GPL"
   :depends-on (#:cl-qrencode)
   :components ((:module "test"
                         :serial t
