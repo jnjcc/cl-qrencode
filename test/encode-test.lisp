@@ -38,3 +38,16 @@
       (cl-qrencode::data-masking input)
     (declare (ignore masked))
     (assert-equal '(0 1 0) mask-ref)))
+
+(defun hex-string-to-bytes (string)
+  (with-input-from-string (stream string)
+    (loop with *read-base* = 16 for x = (read stream NIL) while x collect x)))
+
+(define-test validate-encoding
+  (let ((expected (hex-string-to-bytes "40 86 86 57 27 06 46 57   27 00 ec 11 ec 11 ec 11"))
+        (generated (cl-qrencode::bytes->input
+                    (cl-qrencode::ascii->bytes
+                     "herpderp")
+                    1 :level-m NIL)))
+    (assert-equal expected (cl-qrencode::bstream->codewords
+                            (slot-value generated 'cl-qrencode::bstream)))))
