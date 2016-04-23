@@ -36,6 +36,15 @@ This package also supports writing ```QR-SYMBOL``` into png files.
 ```PIXSIZE``` is number of pixels for each ```QR-SYMBOL``` module, ```MARGIN```
 is number of pixels for each side of the QRcode quiet zone.
 
+Tests
+---------
+Run via ASDF and ```test-op```, ```(asdf:test-system '#:cl-qrencode)```,
+or manually using ```(cl-qrencode-test:run-all-tests)``` once the
+```cl-qrencode-test``` has been loaded.
+
+The tests require the [```lisp-unit```](http://www.cliki.net/lisp-unit)
+library to be installed.
+
 COPYING
 ---------
 Copyright (c) 2011-2014 jnjcc, [Yste.org](http://www.yste.org)
