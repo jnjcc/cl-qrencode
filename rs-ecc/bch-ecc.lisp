@@ -21,13 +21,17 @@
     (mapcar #'sub lhs rhs)))
 (defun poly-mod (msg gen rem &optional (sub #'poly-substract) (mul #'poly-multiply))
   "MSG % GEN, with REM remainders"
-  (do ((m (poly-ash msg rem) (cdr m)))
-      ((<= (length m) rem) m)
-    (let* ((glen (length gen))
-           (sft (- (length m) glen))
-           ;; LEAD coffiecient of message polynomial
-           (lead (car m)))
-      (setf m (funcall sub m (poly-ash (funcall mul gen lead) sft))))))
+  (labels ((cdrnzero (msg)
+             (do ((head msg (cdr head)))
+                 ((or (null head) (/= (car head) 0)) head)
+               head)))
+    (do ((m (poly-ash msg rem) (cdrnzero m)))
+        ((<= (length m) rem) m)
+      (let* ((glen (length gen))
+             (sft (- (length m) glen))
+             ;; LEAD coffiecient of message polynomial
+             (lead (car m)))
+        (setf m (funcall sub m (poly-ash (funcall mul gen lead) sft)))))))
 
 (defclass bch-ecc ()
   ((k :initform nil :initarg :k

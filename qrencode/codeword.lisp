@@ -6,7 +6,9 @@
 
 (defun padding-bits (bstream)
   "add padding bits so that BSTREAM ends at a codeword boundary"
-  (make-list (- (nth-value 1 (ceiling (length bstream) 8))) :initial-element 0))
+  (multiple-value-bind (quot rem) (ceiling (length bstream) 8)
+    (declare (ignore quot))
+    (make-list (- rem) :initial-element 0)))
 
 (defun pad-codewords (bstream version level)
   "add pad codewords (after adding padding-bits) to fill data codeword capacity"
