@@ -4,6 +4,14 @@
 
 (in-package #:cl-qrencode)
 
+(defclass rs-ecc ()
+  ((k :initform nil :initarg :k
+      :documentation "# of data codewords")
+   (ec :initform nil :initarg :ec
+       :documentation "# of error correction codewords")
+   (gpoly :initform nil :reader gpoly
+          :documentation "with EC, we calculate generator poly immediately")))
+
 ;;; Reed-Solomon code uses GF(2^8) with prime polynomial 285,
 ;;; or 1,0001,1101, or (x^8 + x^4 + x^3 + x^2 + 1)
 (let ((gf256 (make-instance 'galois :power 8 :ppoly 285)))
@@ -17,14 +25,6 @@
       (poly-substract lhs rhs #'gf-)))
   (defun rs% (msg gen rem)
     (poly-mod msg gen rem #'rs- #'rs*))
-
-  (defclass rs-ecc ()
-    ((k :initform nil :initarg :k
-        :documentation "# of data codewords")
-     (ec :initform nil :initarg :ec
-         :documentation "# of error correction codewords")
-     (gpoly :initform nil :reader gpoly
-            :documentation "with EC, we calculate generator poly immediately")))
 
   (defmethod initialize-instance :after ((rs rs-ecc) &rest args)
     (declare (ignore args))
