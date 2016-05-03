@@ -8,6 +8,9 @@
   :licence "GPL"
   :serial t
   :depends-on (#:zpng)
+  :in-order-to ((asdf:test-op (asdf:load-op #:cl-qrencode-test)))
+  :perform (asdf:test-op :after (op c)
+             (funcall (find-symbol (symbol-name '#:run-all-tests) '#:cl-qrencode-test)))
   :components ((:file "packages")
                (:module "utils"
                         :components ((:file "util")))
@@ -26,20 +29,3 @@
                                      (:file "encode")))
                (:module "image"
                         :components ((:file "png")))))
-
-(asdf:defsystem #:cl-qrencode-test
-  :description "QR code encoder test suites"
-  :version "0.1.0"
-  :author "jnjcc at live.com"
-  :licence "GPL"
-  :depends-on (#:cl-qrencode)
-  :components ((:module "test"
-                        :serial t
-                        :components ((:file "lisp-unit")
-                                     (:file "packages")
-                                     (:file "utils")
-                                     (:file "pre-spec")
-                                     (:file "ecc-test")
-                                     (:file "spec-test")
-                                     (:file "encode-test")
-                                     (:file "tests")))))
