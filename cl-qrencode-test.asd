@@ -3,7 +3,7 @@
 
 (asdf:defsystem #:cl-qrencode-test
   :description "QR code encoder test suites"
-  :version "0.1.0"
+  :version "0.1.1"
   :author "jnjcc at live.com"
   :licence "GPL"
   :depends-on (#:cl-qrencode #:lisp-unit)

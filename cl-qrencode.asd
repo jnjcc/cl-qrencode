@@ -3,7 +3,7 @@
 
 (asdf:defsystem #:cl-qrencode
   :description "QR code 2005 encoder in Common Lisp"
-  :version "0.1.0"
+  :version "0.1.1"
   :author "jnjcc at live.com"
   :licence "GPL"
   :serial t
