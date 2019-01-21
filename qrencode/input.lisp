@@ -13,7 +13,7 @@
    (ec-level ; cannot be NIL
     :initform :level-m :initarg :ec-level :reader level :type ecc-level)
    (mode
-    :initform nil :initarg :mode :reader mode :type (or nil qr-mode)
+    :initform nil :initarg :mode :reader mode :type (or null qr-mode)
     :documentation "if supplied, we force all BYTES to be under MODE,
 therefore, unless you know exactly what you are doing, leave this NIL")
    (cur-byte
