@@ -12,6 +12,7 @@
 (defun symbol->png (symbol pixsize margin)
   "return the qr symbol written into a zpng:png object with PIXSIZE
 pixels for each module, and MARGIN pixels on all four sides"
+  (declare (type fixnum pixsize margin))
   (with-slots (matrix modules) symbol
     (let* ((size (+ (* modules pixsize) (* margin 2)))
            (qrpng (make-instance 'zpng:png :width size :height size))

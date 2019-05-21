@@ -6,8 +6,10 @@
 
 (defclass qr-symbol ()
   ((matrix :initform nil :initarg :matrix :reader matrix
+           :type matrix
            :documentation "qr code symbol as matrix")
    (modules :initform nil :initarg :modules :reader modules
+            :type (integer 0 #. array-total-size-limit)
             :documentation "qr code symbol modules")))
 
 (defmethod print-object ((symbol qr-symbol) stream)
