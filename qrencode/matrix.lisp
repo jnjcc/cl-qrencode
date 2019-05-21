@@ -9,6 +9,9 @@
 :FLIGHT/:FDARK, function pattern light/dark module; :LIGHT/:DARK, data modules"
   '(member :raw :flight :fdark :reserve :light :dark))
 
+(deftype matrix ()
+  `(array module-color (* *)))
+
 (defun same-color-p (color1 color2)
   "during QR symbol evaluation, :fdark & :dark are considered to be same"
   (case color1
@@ -18,8 +21,10 @@
 
 (defun raw-module-p (matrix i j)
   "nothing has been done to MATRIX[I, J]"
+  (declare (type matrix matrix))
   (eq (aref matrix i j) :raw))
 
+(declaim (ftype (function (fixnum &optional module-color) matrix) make-modules-matrix))
 (defun make-modules-matrix (modules &optional (init :raw))
   "make a raw matrix with MODULES * MODULES elements"
   (make-array `(,modules ,modules) :initial-element init))
@@ -31,6 +36,7 @@
 
 (defun paint-square (matrix x y n &optional (color :fdark))
   "Paint a square of size N*N starting from upleft (X, Y) in MATRIX to COLOR"
+  (declare (type matrix matrix))
   (let ((maxx (+ x n -1))
         (maxy (+ y n -1)))
     (loop for i from x to maxx do

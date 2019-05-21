@@ -10,19 +10,24 @@
   (member (aref matrix i j)
           '(:light :dark) 
           :test #'eq))
+
 (defun non-mask-module-p (matrix i j)
   (not (encoding-module-p matrix i j)))
+
 (defun reverse-module-color (matrix i j)
+  (declare (type matrix matrix))
   (case (aref matrix i j)
     (:dark :light) (:light :dark)))
 
 ;;; all modules are evaluated:
 ;;;  there should be only :dark :light :fdark :flight modules left by now
 (defun dark-module-p (matrix i j)
+  (declare (type matrix matrix))
   (member (aref matrix i j) '(:dark :fdark)))
 
 (defun copy-and-mask (matrix modules level mask-ind)
   "make a new matrix and mask using MASK-IND for later evaluation"
+  (declare (type matrix matrix))
   (let ((ret (make-modules-matrix modules))
         (mask-p (mask-condition mask-ind))
         (darks 0))
@@ -45,6 +50,7 @@
 
 (defun mask-matrix (matrix modules level mask-ind)
   "do not evaluate, just go ahead and mask MATRIX using MASK-IND mask pattern"
+  (declare (type matrix matrix))
   (let ((mask-p (mask-condition mask-ind)))
     (dotimes (i modules)
       (dotimes (j modules)
@@ -57,6 +63,7 @@
 
 (defun choose-masking (matrix modules level)
   "mask and evaluate using each mask pattern, choose the best mask result"
+  (declare (type matrix matrix))
   (let ((n4 10)
         (best-matrix nil)
         (mask-indicator nil)
@@ -79,6 +86,7 @@
 
 ;;; feature 1 & 2 & 3
 (defun evaluate-feature-123 (matrix modules)
+  (declare (type matrix matrix))
   (let ((penalty 0))
     (incf penalty (evaluate-feature-2 matrix modules))
     (dotimes (col modules)
@@ -93,6 +101,7 @@
 
 (defun calc-run-length (matrix modules num &optional (direction :row))
   "list of number of adjacent modules in same color"
+  (declare (type matrix matrix))
   (let ((rlength (make-array modules 
                              :element-type 'fixnum
                              :initial-element 0
@@ -164,6 +173,7 @@ preceded or followed by light area 4 modules wide. N3 points, N3 = 40"
 
 (defun evaluate-feature-2 (matrix modules)
   "block m * n of modules in same color. N2 * (m-1) * (n-1) points, N2=3"
+  (declare (type matrix matrix))
   (let ((n2 3)
         (penalty 0)
         (bcount 0))
