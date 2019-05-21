@@ -21,8 +21,10 @@
 
 ;;; all modules are evaluated:
 ;;;  there should be only :dark :light :fdark :flight modules left by now
+(declaim (inline dark-module-p))
 (defun dark-module-p (matrix i j)
-  (declare (type matrix matrix))
+  (declare (type matrix matrix)
+           (type (integer 0 #. array-dimension-limit) i j))
   (member (aref matrix i j) '(:dark :fdark)))
 
 (defun copy-and-mask (matrix modules level mask-ind)
@@ -101,8 +103,10 @@
 
 (defun calc-run-length (matrix modules num &optional (direction :row))
   "list of number of adjacent modules in same color"
-  (declare (type matrix matrix))
-  (let ((rlength (make-array modules 
+  (declare (type matrix matrix)
+           (type fixnum modules num))
+  ;; At most as many elements as we've got rows resp. columns.
+  (let ((rlength (make-array (1+ modules)
                              :element-type 'fixnum
                              :initial-element 0
                              :fill-pointer 0))
