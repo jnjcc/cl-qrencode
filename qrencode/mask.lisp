@@ -7,8 +7,9 @@
 ;;; only encoding region modules (excluding format information) are masked
 (defun encoding-module-p (matrix i j)
   "modules belong to encoding region, excluding format & version information"
-  (or (eq (aref matrix i j) :light)
-      (eq (aref matrix i j) :dark)))
+  (member (aref matrix i j)
+          '(:light :dark) 
+          :test #'eq))
 (defun non-mask-module-p (matrix i j)
   (not (encoding-module-p matrix i j)))
 (defun reverse-module-color (matrix i j)
@@ -18,8 +19,7 @@
 ;;; all modules are evaluated:
 ;;;  there should be only :dark :light :fdark :flight modules left by now
 (defun dark-module-p (matrix i j)
-  (or (eq (aref matrix i j) :fdark)
-      (eq (aref matrix i j) :dark)))
+  (member (aref matrix i j) '(:dark :fdark)))
 
 (defun copy-and-mask (matrix modules level mask-ind)
   "make a new matrix and mask using MASK-IND for later evaluation"
