@@ -4,10 +4,11 @@
 
 (in-package #:cl-qrencode)
 
-(defun set-color (pngarray x y color)
-  (setf (aref pngarray x y 0) color)
-  (setf (aref pngarray x y 1) color)
-  (setf (aref pngarray x y 2) color))
+(defun put-black-square (arr x0 y0 size)
+  (dotimes (y size)
+    (let ((base (array-row-major-index arr (+ y0 y) x0 0)))
+      (dotimes (x size)
+        (setf (row-major-aref arr (+ x base)) 0)))))
 
 (defun symbol->png (symbol pixsize margin)
   "return the qr symbol written into a zpng:png object with PIXSIZE
@@ -15,19 +16,25 @@ pixels for each module, and MARGIN pixels on all four sides"
   (declare (type fixnum pixsize margin))
   (with-slots (matrix modules) symbol
     (let* ((size (+ (* modules pixsize) (* margin 2)))
-           (qrpng (make-instance 'zpng:png :width size :height size))
+           (qrpng (make-instance 'zpng:png 
+                                 :width size 
+                                 :height size 
+                                 :color-type :grayscale))
            (qrarray (zpng:data-array qrpng)))
-      (dotimes (x size)
-        (dotimes (y size)
-          (if (and (<= margin x (- size margin 1))
-                   (<= margin y (- size margin 1)))
-              (let ((i (floor (- x margin) pixsize))
-                    (j (floor (- y margin) pixsize)))
-                (if (dark-module-p matrix i j)
-                    (set-color qrarray x y 0)
-                    (set-color qrarray x y 255)))
-              ;; quiet zone
-              (set-color qrarray x y 255))))
+      ;; Paint margins == quiet zone, everything becomes white.
+      ;; TODO: should be done in zpng:png initialization directly!
+      (dotimes (i (array-total-size qrarray))
+        (setf (row-major-aref qrarray i) 
+              255))
+      ;;
+      (dotimes (y modules)
+        (dotimes (x modules)
+          ;; It's sufficient to only write black pixels now
+          (if (dark-module-p matrix x y)
+            (put-black-square qrarray
+                              (+ margin (* pixsize x))
+                              (+ margin (* pixsize y))
+                              pixsize))))
       qrpng)))
 
 (defun encode-png (text &key (fpath "qrcode.png") (version 1) (level :level-m)
