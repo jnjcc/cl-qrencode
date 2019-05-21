@@ -82,7 +82,7 @@
   (let ((penalty 0))
     (incf penalty (evaluate-feature-2 matrix modules))
     (dotimes (col modules)
-      (let ((rlength (calc-run-length matrix modules col)))
+      (let ((rlength (calc-run-length matrix modules col :row)))
         (incf penalty (evaluate-feature-1 rlength))
         (incf penalty (evaluate-feature-3 rlength))))
     (dotimes (row modules)
@@ -93,58 +93,74 @@
 
 (defun calc-run-length (matrix modules num &optional (direction :row))
   "list of number of adjacent modules in same color"
-  (let ((rlength nil)
-        (ridx 0))
-    (labels ((get-elem (idx)
-               (case direction
-                 (:row (aref matrix num idx))
-                 (:col (aref matrix idx num))))
-             (add-to-list (list elem)
-               (append list (list elem))))
-      ;; we make sure (NTH 1 rlength) is for dark module
+  (let ((rlength (make-array modules 
+                             :element-type 'fixnum
+                             :initial-element 0
+                             :fill-pointer 0))
+        (base (case direction
+                (:row (* num modules))
+                (:col num)))
+        (step (case direction
+                (:row 1)
+                (:col modules)))
+        (prev :dark))
+    (labels 
+        ((get-elem (idx)
+           (row-major-aref matrix (+ base (* idx step))))
+         (add-to-list (elem)
+           (vector-push-extend elem rlength)))
+      ;; we make sure index 1 is for dark module
       (when (same-color-p (get-elem 0) :dark)
-        (setf rlength (add-to-list rlength -1)
-              ridx 1))
-      (setf rlength (add-to-list rlength 1))
-
-      (loop for i from 1 to (- modules 1) do
-           (if (same-color-p (get-elem i) (get-elem (- i 1)))
-               (incf (nth ridx rlength))
-               (progn
-                 (incf ridx)
-                 (setf rlength (add-to-list rlength 1)))))
+        (add-to-list -1))
+      (add-to-list 1)
+      ;;
+      (loop for i from 1 below modules
+            for this = (get-elem i)
+            do (cond
+                 ((same-color-p this prev)
+                  (incf 
+                    (aref rlength 
+                          (1- (fill-pointer rlength)))))
+                 (T
+                  (setf prev this)
+                  (add-to-list 1))))
       rlength)))
 
 (defun evaluate-feature-1 (rlength)
   "(5 + i) adjacent modules in row/column in same color. (N1 + i) points, N1 = 3"
+  (declare (type (array fixnum) rlength))
   (let ((n1 3)
         (penalty 0))
-    (dolist (sz rlength penalty)
-      (when (> sz 5)
-        (incf penalty (+ n1 sz -5))))))
+    (map nil
+         (lambda (sz)
+           (when (> sz 5)
+             (incf penalty (+ n1 sz -5))))
+         rlength)
+    penalty))
 
 (defun evaluate-feature-3 (rlength)
   "1:1:3:1:1 ration (dark:light:dark:light:dark) pattern in row/column,
 preceded or followed by light area 4 modules wide. N3 points, N3 = 40"
+  (declare (type (array fixnum) rlength))
   (let ((n3 40)
         (len (length rlength))
         (penalty 0))
     (do ((i 3 (+ i 2)))
         ((>= i (- len 2)) penalty)
       (when (and (= (mod i 2) 1) ; for dark module
-                 (= (mod (nth i rlength) 3) 0)
-        (let ((fact (floor (nth i rlength) 3)))
+                 (= (mod (aref rlength i) 3) 0)
+        (let ((fact (floor (aref rlength i) 3)))
           ;; 1:1:3:1:1
           (when (= fact
-                   (nth (- i 2) rlength)
-                   (nth (- i 1) rlength)
-                   (nth (+ i 1) rlength)
-                   (nth (+ i 2) rlength))
+                   (aref rlength (- i 2))
+                   (aref rlength (- i 1))
+                   (aref rlength (+ i 1))
+                   (aref rlength (+ i 2)))
             (cond
               ((<= (- i 3) 0) (incf penalty n3))
               ((>= (+ i 4) len) (incf penalty n3))
-              ((>= (nth (- i 3) rlength) (* 4 fact)) (incf penalty n3))
-              ((>= (nth (+ i 3) rlength) (* 4 fact)) (incf penalty n3))))))))))
+              ((>= (aref rlength (- i 3)) (* 4 fact)) (incf penalty n3))
+              ((>= (aref rlength (+ i 3)) (* 4 fact)) (incf penalty n3))))))))))
 
 (defun evaluate-feature-2 (matrix modules)
   "block m * n of modules in same color. N2 * (m-1) * (n-1) points, N2=3"
