@@ -173,7 +173,7 @@
       (:alnum
        (setf r (mod d 2))
        ;; B = M + C + 11 * (D / 2) + 6 * (D % 2)
-       (+ m c (* 11 (floor d 2)) r))
+       (+ m c (* 11 (floor d 2)) (* 6 r)))
       (:byte
        ;; B = M + C + 8 * D
        (+ m c (* 8 d)))
