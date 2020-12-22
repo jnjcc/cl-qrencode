@@ -5,10 +5,12 @@
 (in-package #:cl-qrencode)
 
 (defclass qr-symbol ()
-  ((matrix :initform nil :initarg :matrix :reader matrix
+  ((matrix :initform (error ":matrix initarg required") 
+           :initarg :matrix :reader matrix
            :type matrix
            :documentation "qr code symbol as matrix")
-   (modules :initform nil :initarg :modules :reader modules
+   (modules :initform (error ":modules initarg required")
+            :initarg :modules :reader modules
             :type (integer 0 #. array-dimension-limit)
             :documentation "qr code symbol modules")))
 
