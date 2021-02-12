@@ -7,22 +7,29 @@
 ;;; only encoding region modules (excluding format information) are masked
 (defun encoding-module-p (matrix i j)
   "modules belong to encoding region, excluding format & version information"
-  (or (eq (aref matrix i j) :light)
-      (eq (aref matrix i j) :dark)))
+  (member (aref matrix i j)
+          '(:light :dark) 
+          :test #'eq))
+
 (defun non-mask-module-p (matrix i j)
   (not (encoding-module-p matrix i j)))
+
 (defun reverse-module-color (matrix i j)
+  (declare (type matrix matrix))
   (case (aref matrix i j)
     (:dark :light) (:light :dark)))
 
 ;;; all modules are evaluated:
 ;;;  there should be only :dark :light :fdark :flight modules left by now
+(declaim (inline dark-module-p))
 (defun dark-module-p (matrix i j)
-  (or (eq (aref matrix i j) :fdark)
-      (eq (aref matrix i j) :dark)))
+  (declare (type matrix matrix)
+           (type (integer 0 #. array-dimension-limit) i j))
+  (member (aref matrix i j) '(:dark :fdark)))
 
 (defun copy-and-mask (matrix modules level mask-ind)
   "make a new matrix and mask using MASK-IND for later evaluation"
+  (declare (type matrix matrix))
   (let ((ret (make-modules-matrix modules))
         (mask-p (mask-condition mask-ind))
         (darks 0))
@@ -45,6 +52,7 @@
 
 (defun mask-matrix (matrix modules level mask-ind)
   "do not evaluate, just go ahead and mask MATRIX using MASK-IND mask pattern"
+  (declare (type matrix matrix))
   (let ((mask-p (mask-condition mask-ind)))
     (dotimes (i modules)
       (dotimes (j modules)
@@ -57,6 +65,7 @@
 
 (defun choose-masking (matrix modules level)
   "mask and evaluate using each mask pattern, choose the best mask result"
+  (declare (type matrix matrix))
   (let ((n4 10)
         (best-matrix nil)
         (mask-indicator nil)
@@ -79,10 +88,11 @@
 
 ;;; feature 1 & 2 & 3
 (defun evaluate-feature-123 (matrix modules)
+  (declare (type matrix matrix))
   (let ((penalty 0))
     (incf penalty (evaluate-feature-2 matrix modules))
     (dotimes (col modules)
-      (let ((rlength (calc-run-length matrix modules col)))
+      (let ((rlength (calc-run-length matrix modules col :row)))
         (incf penalty (evaluate-feature-1 rlength))
         (incf penalty (evaluate-feature-3 rlength))))
     (dotimes (row modules)
@@ -93,66 +103,90 @@
 
 (defun calc-run-length (matrix modules num &optional (direction :row))
   "list of number of adjacent modules in same color"
-  (let ((rlength nil)
-        (ridx 0))
-    (labels ((get-elem (idx)
-               (case direction
-                 (:row (aref matrix num idx))
-                 (:col (aref matrix idx num))))
-             (add-to-list (list elem)
-               (append list (list elem))))
-      ;; we make sure (NTH 1 rlength) is for dark module
+  (declare (type matrix matrix)
+           (type fixnum modules num))
+  ;; At most as many elements as we've got rows resp. columns.
+  (let ((rlength (make-array (1+ modules)
+                             :element-type 'fixnum
+                             :initial-element 0
+                             :fill-pointer 0))
+        (base (case direction
+                (:row (* num modules))
+                (:col num)))
+        (step (case direction
+                (:row 1)
+                (:col modules)))
+        (prev :dark))
+    (labels 
+        ((get-elem (idx)
+           (row-major-aref matrix (+ base (* idx step))))
+         (add-to-list (elem)
+           (vector-push-extend elem rlength)))
+      ;; we make sure index 1 is for dark module
       (when (same-color-p (get-elem 0) :dark)
-        (setf rlength (add-to-list rlength -1)
-              ridx 1))
-      (setf rlength (add-to-list rlength 1))
-
-      (loop for i from 1 to (- modules 1) do
-           (if (same-color-p (get-elem i) (get-elem (- i 1)))
-               (incf (nth ridx rlength))
-               (progn
-                 (incf ridx)
-                 (setf rlength (add-to-list rlength 1)))))
+        (add-to-list -1))
+      (add-to-list 1)
+      ;;
+      (loop for i from 1 below modules
+            for this = (get-elem i)
+            do (cond
+                 ((same-color-p this prev)
+                  (incf 
+                    (aref rlength 
+                          (1- (fill-pointer rlength)))))
+                 (T
+                  (setf prev this)
+                  (add-to-list 1))))
       rlength)))
 
 (defun evaluate-feature-1 (rlength)
   "(5 + i) adjacent modules in row/column in same color. (N1 + i) points, N1 = 3"
+  (declare (type (array fixnum) rlength))
   (let ((n1 3)
         (penalty 0))
-    (dolist (sz rlength penalty)
-      (when (> sz 5)
-        (incf penalty (+ n1 sz -5))))))
+    (map nil
+         (lambda (sz)
+           (when (> sz 5)
+             (incf penalty (+ n1 sz -5))))
+         rlength)
+    penalty))
 
 (defun evaluate-feature-3 (rlength)
   "1:1:3:1:1 ration (dark:light:dark:light:dark) pattern in row/column,
 preceded or followed by light area 4 modules wide. N3 points, N3 = 40"
+  (declare (type (array fixnum) rlength))
   (let ((n3 40)
         (len (length rlength))
         (penalty 0))
     (do ((i 3 (+ i 2)))
         ((>= i (- len 2)) penalty)
       (when (and (= (mod i 2) 1) ; for dark module
-                 (= (mod (nth i rlength) 3) 0)
-        (let ((fact (floor (nth i rlength) 3)))
+                 (= (mod (aref rlength i) 3) 0)
+        (let ((fact (floor (aref rlength i) 3)))
           ;; 1:1:3:1:1
           (when (= fact
-                   (nth (- i 2) rlength)
-                   (nth (- i 1) rlength)
-                   (nth (+ i 1) rlength)
-                   (nth (+ i 2) rlength))
+                   (aref rlength (- i 2))
+                   (aref rlength (- i 1))
+                   (aref rlength (+ i 1))
+                   (aref rlength (+ i 2)))
             (cond
               ((<= (- i 3) 0) (incf penalty n3))
               ((>= (+ i 4) len) (incf penalty n3))
-              ((>= (nth (- i 3) rlength) (* 4 fact)) (incf penalty n3))
-              ((>= (nth (+ i 3) rlength) (* 4 fact)) (incf penalty n3))))))))))
+              ((>= (aref rlength (- i 3)) (* 4 fact)) (incf penalty n3))
+              ((>= (aref rlength (+ i 3)) (* 4 fact)) (incf penalty n3))))))))))
 
 (defun evaluate-feature-2 (matrix modules)
   "block m * n of modules in same color. N2 * (m-1) * (n-1) points, N2=3"
+  (declare (type matrix matrix)
+           ;; TODO: change type of MODULES slot to that as well?
+           (type (integer 1 3000) modules))
   (let ((n2 3)
         (penalty 0)
         (bcount 0))
-    (dotimes (i (- modules 1) penalty)
-      (dotimes (j (- modules 1))
+    (declare (optimize (speed 3) (safety 1))
+             (type fixnum penalty bcount))
+    (dotimes (i (1- (array-dimension matrix 0)) penalty)
+      (dotimes (j (1- (array-dimension matrix 1)))
         (when (dark-module-p matrix i j)
           (incf bcount))
         (when (dark-module-p matrix (+ i 1) j)

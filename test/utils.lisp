@@ -26,9 +26,15 @@
 (defun function-pattern-png (version)
   "dump function patterns into png"
   (let ((fp (function-pattern-symbol version)))
-    (cl-qrencode::symbol->png fp "funtion-pattern.png" 9 8)))
+    (cl-qrencode:encode-png fp
+                            :fpath "function-pattern.png"
+                            :pixsize 9
+                            :margin 8)))
 
 (defun raw-symbol-png (text &key (version 1) (level :level-m) (mode nil))
   "dump raw symbol into png"
   (let ((raw (raw-symbol text :version version :level level :mode mode)))
-    (cl-qrencode::symbol->png raw "raw-symbol.png" 9 8)))
+    (cl-qrencode:encode-png raw
+                            :fpath "raw-symbol.png"
+                            :pixsize 9
+                            :margin 8)))

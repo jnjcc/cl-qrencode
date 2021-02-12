@@ -205,7 +205,9 @@ Data capacity codewords (bytes, including ecc codewords) | Remainder bits.")
 
 (defvar *mask-pattern-num* 8)
 (defun mask-condition (indicator)
+  (declare (type (integer 0 8) indicator))
   (lambda (i j)
+    (declare (type fixnum i j))
     (case indicator
       ;; (i + j) mod 2 == 0
       (0 (= (mod (+ i j) 2) 0))

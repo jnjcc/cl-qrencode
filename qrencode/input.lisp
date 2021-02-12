@@ -353,13 +353,11 @@ achieve the most efficient conversion of data"))
     ;; Function pattern placement
     (function-patterns matrix version)
     ;; Symbol character placement
-    (let ((rbits (remainder-bits version))
-          (bstream nil))
-      (labels ((dec->byte (codeword)
-                 (decimal->bstream codeword 8)))
-        (setf bstream (append (reduce #'append (mapcar #'dec->byte msg-codewords))
-                              ;; data capacity of _symbol_ does not divide by 8
-                              (make-list rbits :initial-element 0))))
+    (let* ((rbits (remainder-bits version))
+           (bstream (append (loop for n in msg-codewords
+                                  nconc (decimal->bstream n 8))
+                            ;; data capacity of _symbol_ does not divide by 8
+                            (make-list rbits :initial-element 0))))
       (symbol-character bstream matrix version))))
 
 (defmethod data-masking ((input qr-input))

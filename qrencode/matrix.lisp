@@ -9,6 +9,9 @@
 :FLIGHT/:FDARK, function pattern light/dark module; :LIGHT/:DARK, data modules"
   '(member :raw :flight :fdark :reserve :light :dark))
 
+(deftype matrix ()
+  `(simple-array module-color (* *)))
+
 (defun same-color-p (color1 color2)
   "during QR symbol evaluation, :fdark & :dark are considered to be same"
   (case color1
@@ -18,8 +21,10 @@
 
 (defun raw-module-p (matrix i j)
   "nothing has been done to MATRIX[I, J]"
+  (declare (type matrix matrix))
   (eq (aref matrix i j) :raw))
 
+(declaim (ftype (function (fixnum &optional module-color) matrix) make-modules-matrix))
 (defun make-modules-matrix (modules &optional (init :raw))
   "make a raw matrix with MODULES * MODULES elements"
   (make-array `(,modules ,modules) :initial-element init))
@@ -31,6 +36,7 @@
 
 (defun paint-square (matrix x y n &optional (color :fdark))
   "Paint a square of size N*N starting from upleft (X, Y) in MATRIX to COLOR"
+  (declare (type matrix matrix))
   (let ((maxx (+ x n -1))
         (maxy (+ y n -1)))
     (loop for i from x to maxx do
@@ -165,22 +171,24 @@ wide columns, alternately in the right and left modules, moving upwards or
 downwards according to DIRECTION, skipping function patterns, changing DIRECTION
 at the top or bottom of the symbol. The only exception is that no block should
 ever overlap the vertical timing pattern."
-  (let ((i (- modules 1))
-        (j (- modules 1))
+  (declare (type matrix matrix)
+           (type list bstream))
+  (loop with i = (1- modules)
+        with j = (1- modules)
         ;; -1: upwards, +1: downwards
-        (direction -1)
-        (len (length bstream)))
-    (do ((idx 0))
-        ((>= idx len) matrix)
-      (when (raw-module-p matrix i j)
-        (paint-color-bit matrix i j (nth idx bstream))
-        (incf idx))
-      (when (and (>= (- j 1) 0)
-                 (raw-module-p matrix i (- j 1)))
+        with direction = -1
+        ;;
+        while bstream
+        ;;
+        if (raw-module-p matrix i j)
+        do (paint-color-bit matrix i j (pop bstream))
+        ;;
+        if (and (>= (- j 1) 0)
+                (raw-module-p matrix i (- j 1)))
         ;; try left module
-        (paint-color-bit matrix i (- j 1) (nth idx bstream))
-        (incf idx))
-      (if (< -1 (+ i direction) modules)
+        do (paint-color-bit matrix i (- j 1) (pop bstream))
+        ;;
+        do (if (< -1 (+ i direction) modules)
           (incf i direction)
           (progn
             ;; reverse direction
@@ -189,7 +197,8 @@ ever overlap the vertical timing pattern."
                 ;; vertical timing pattern reached, the next block starts
                 ;; to the left of it
                 (decf j 3)
-                (decf j 2)))))))
+                (decf j 2)))))
+    matrix)
 
 ;;; format information, during and after masking
 (defun format-information (matrix modules level mask-ind)

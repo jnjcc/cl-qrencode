@@ -23,7 +23,7 @@
            #:encode-png
            #:encode-png-bytes ; this should have been deprecated
            #:encode-png-stream
-           ; #:encode-png-bytes-stream
+           #:encode-png-bytes-stream
            #:read-file-content
            #:sdebug
            #:undebug))
