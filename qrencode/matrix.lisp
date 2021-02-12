@@ -10,7 +10,7 @@
   '(member :raw :flight :fdark :reserve :light :dark))
 
 (deftype matrix ()
-  `(array module-color (* *)))
+  `(simple-array module-color (* *)))
 
 (defun same-color-p (color1 color2)
   "during QR symbol evaluation, :fdark & :dark are considered to be same"

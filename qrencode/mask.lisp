@@ -177,12 +177,16 @@ preceded or followed by light area 4 modules wide. N3 points, N3 = 40"
 
 (defun evaluate-feature-2 (matrix modules)
   "block m * n of modules in same color. N2 * (m-1) * (n-1) points, N2=3"
-  (declare (type matrix matrix))
+  (declare (type matrix matrix)
+           ;; TODO: change type of MODULES slot to that as well?
+           (type (integer 1 3000) modules))
   (let ((n2 3)
         (penalty 0)
         (bcount 0))
-    (dotimes (i (- modules 1) penalty)
-      (dotimes (j (- modules 1))
+    (declare (optimize (speed 3) (safety 1))
+             (type fixnum penalty bcount))
+    (dotimes (i (1- (array-dimension matrix 0)) penalty)
+      (dotimes (j (1- (array-dimension matrix 1)))
         (when (dark-module-p matrix i j)
           (incf bcount))
         (when (dark-module-p matrix (+ i 1) j)
